@@ -7,7 +7,7 @@
 			<v-container fluid >
 				<v-row>
 					<v-col cols="12" sm="12">
-						<v-sheet elevation="12" class="pa-7">
+						<v-sheet elevation="12" class="pa-8">
 							<v-text-field
                 v-model="inputValue"
                 label="新增待辦事項"
@@ -27,9 +27,9 @@
                   <span v-if='listItems.length > 0'>{{listItems.length}} 筆符合結果</span>
                   <span v-if="listItems.length == 0">無符合結果</span>
                   <div style="display: inline-block; position: absolute; right: 8%; padding-bottom: 20px;">
-                    <input class="inputstyle" type="text" :placeholder="searchPlaceholder" v-model="searchBarText" v-on:keyup="searching(items)" v-on:blur="searchBarBlur">
-                    <button v-bind:class="{ sortBtn: sortType == 'asc' }" class="btn" v-on:click="sort('asc')">asc</button>
-                    <button v-bind:class="{ sortBtn: sortType == 'desc' }" class="btn" v-on:click="sort('desc')">desc</button>
+                    <input class="inputstyle" type="text" :placeholder="searchPlaceholder" v-model="searchBarText" v-on:blur="searchBarBlur">
+                    <button v-bind:class="{ sortBtn: sortType == 'asc' }" class="btn" v-on:click="changeSortType('asc')">asc</button>
+                    <button v-bind:class="{ sortBtn: sortType == 'desc' }" class="btn" v-on:click="changeSortType('desc')">desc</button>
                     <!-- <input type="checkbox" v-model="showDone">
                     <label class="btn btn-noborder" v-bind:class="{ reddd: showDone }">只顯示已完成</label> -->
                   </div>
@@ -37,10 +37,10 @@
                 <div class="bot">
                   <div class="bot-box" v-for="item in listItems" v-bind:key="item.id">
 						        <input type="checkbox" v-model="item.completed" v-on:click="cancelCheckbox(item)">
-						        <label v-bind:class="{ complete: item.completed}" v-if="!item.ableChangeText || !item.completed" v-on:click="showChangeInput(item)" > {{item.id + 1}}. {{item.text}} ( 新增於{{ item.createTime | transform }} )</label>
-						        <input class="inputstyle" type="text" v-if="item.ableChangeText && item.completed" v-model="item.text" v-on:keyup.enter="sendChangeInput(item)">
-						        <button class="btn" v-if="item.completed && item.ableChangeText" v-on:click="sendChangeInput(item)">確定修改</button>
-										<button class="btn" v-if="item.completed && item.ableChangeText" v-on:click="cancelChangeInput(item)">取消修改</button>
+						        <label v-bind:class="{ complete: item.completed}" v-if="!item.ableChangeText || !item.completed" v-on:click="showChangeTextInput(item)" > {{item.id + 1}}. {{item.text}} ( 新增於{{ item.createTime | transform }} )</label>
+						        <input class="inputstyle" type="text" v-if="item.ableChangeText && item.completed" v-model="item.text" v-on:keyup.enter="changeInputText(item)">
+						        <button class="btn" v-if="item.completed && item.ableChangeText" v-on:click="changeInputText(item)">確定修改</button>
+										<button class="btn" v-if="item.completed && item.ableChangeText" v-on:click="cancelChangeInputText(item)">取消修改</button>
 										<button class="btn" v-on:click="remove(item)" v-if="item.completed">刪除</button>
 						      </div>
 					      </div>
@@ -131,36 +131,111 @@ export default {
         this.hint = '請輸入待辦事項';
       }
     },
+    add: function(e) {
+      if (!this.inputValue) {
+        this.hint = '待辦事項不可為空';
+        return;
+      }
+      var cacheHint = this.hint;
+      this.loading = true;
+      this.hint = '新增中 請稍候...';
+      setTimeout(() => {
+        this.loading = false;
+        if (!engIntOnly(this.inputValue) && !chineseOnly(this.inputValue)) {
+          this.hint = '含有非法字元 請重新輸入';
+          return;
+        }
+        for (let i = 0; i < this.items.length; i++) {
+          if (this.items[i].text === this.inputValue) {
+            this.hint = '已有相同待辦事項';
+            return;
+            break;
+          }
+        }
+        // savetoLocalStorage
+        if (this.inputValue && this.inputValue.trim().length) {
+          this.items.push({
+            id: this.listItems.length,
+            text: this.inputValue,
+            completed: false,
+            ableChangeText: false,
+            createTime: new Date().getTime(),
+          });
+        }
+        this.inputValue = '';
+        this.hint = cacheHint;
+        e.target.blur();
+        setTimeout(() => {
+            document.querySelector('.bot').scrollTo(0, document.querySelector('.bot').scrollHeight);
+        }, 0);
+      }, 1800)
+    },
+    remove: function(todo) {
+		  this.items.splice(this.items.indexOf(todo), 1);
+    },
+    cancelCheckbox: function(todo) {
+      if (todo.completed) {
+		  	this.items[this.items.indexOf(todo)].ableChangeText = false;
+		  	this.items[this.items.indexOf(todo)].completed = false;
+		  }
+    },
+    showChangeTextInput: function(todo) {
+      if (!todo.completed) return;
+      todo.ableChangeText = true;
+      this.cacheValue = todo.text;
+    },
+    changeInputText: function(todo) {
+      todo.ableChangeText = false;
+      todo.completed = false;
+      this.cacheValue = '';
+    },
+    cancelChangeInputText: function(todo) {
+		  todo.text = this.cacheValue;
+		  todo.ableChangeText = false;
+		  this.cacheValue = '';
+		},
     inputBlur: function() {
       this.inputValue = '';
       this.hint = '請輸入待辦事項';
     },
     searchBarBlur: function() {
 		  this.searchPlaceholder = '請輸入搜尋文字';
-	  },
-    sortFunc: function (todos) { // 抽出來邏輯不要寫在這 耗效能 每次都會重新渲染 https://ithelp.ithome.com.tw/articles/10187537
+    },
+    changeSortType: function(type) {
+      if (type == 'asc') {
+        this.sortType = 'asc'
+      } else if (type == 'desc') {
+        this.sortType = 'desc'
+      }
+    },
+    sortList: function (todos) { // 抽出來邏輯不要寫在這 耗效能 每次都會重新渲染 https://ithelp.ithome.com.tw/articles/10187537
 		  return _.orderBy(todos, 'createTime', this.sortType);  
-		},
+    },
+    setFilter: function(text) {
+      this.filter = text;
+      this.showDone = text == '已完成' ? true : false;
+      this.showNoDone = text == '未完成' ? true : false;
+    }
   },
   computed: {
     listItems() {
       if (this.searchBarText && this.showDone) { // 有搜尋文字以及只開啟完成list
         var mappingSearchList = this.items.filter((item) => { return item.text.indexOf(this.searchBarText) > -1 && item.completed; })
-        return this.sortFunc(mappingSearchList);
+        return this.sortList(mappingSearchList);
       } else if (this.searchBarText && this.showNoDone){
         var mappingSearchList = this.items.filter((item) => { return item.text.indexOf(this.searchBarText) > -1 && !item.completed; })
-        return this.sortFunc(mappingSearchList);
+        return this.sortList(mappingSearchList);
       } else if(this.searchBarText && !this.showDone && !this.showNoDone) {
         var mappingSearchList = this.items.filter((item) => { return item.text.indexOf(this.searchBarText) > -1 })
-        return this.sortFunc(mappingSearchList);
+        return this.sortList(mappingSearchList);
       } else if (!(this.searchBarText) && this.showDone) {
         var showTodos = this.items.filter((item) => { return item.completed; });
-        return this.sortFunc(showTodos); 
+        return this.sortList(showTodos); 
       } else if (!(this.searchBarText) && this.showNoDone) {
         var showTodos = this.items.filter((item) => { return !item.completed; });
-        return this.sortFunc(showTodos);
+        return this.sortList(showTodos);
       } else {
-        return this.sortFunc(this.items); // only desc || asc
+        return this.sortList(this.items); // only desc || asc
       }
     },
     newFilterItems() {
@@ -183,7 +258,12 @@ export default {
     },
   },
   watch: {
-
+    items: {
+      handler: function(items){
+        storage.save(items)
+      },
+      deep: true
+    },
   },
 }
 </script>
@@ -196,6 +276,11 @@ export default {
   .v-application--wrap {
     min-height: 70vh;
   }
+  .inputstyle {
+    padding: 0 5px;
+    border-radius: 4px;
+    border: 1px solid black;
+	}
   .btn {
     padding: 2px;
     border: 1px solid black;
@@ -224,9 +309,6 @@ export default {
     overflow-x: scroll;
     border: 1px solid #ffc78e;
     padding: 10px;
-  }
-  .bot-box {
-    margin: 10px 0;
   }
   .filter{
     margin-top: 30px;
