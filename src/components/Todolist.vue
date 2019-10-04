@@ -26,10 +26,20 @@
                 <div class="top">
                   <span v-if='listItems.length > 0'>{{listItems.length}} 筆符合結果</span>
                   <span v-if="listItems.length == 0">無符合結果</span>
-                  <div style="display: inline-block; position: absolute; right: 8%; padding-bottom: 20px;">
-                    <input class="inputstyle" type="text" :placeholder="searchPlaceholder" v-model="searchBarText" v-on:blur="searchBarBlur">
+                  <div style="display: inline-block; position: absolute; top: -25px; right: 8px;">
+                    <!-- <input class="inputstyle" type="text" :placeholder="searchPlaceholder" v-model="searchBarText" v-on:blur="searchBarBlur"> -->
+                    <v-text-field type="text" color="success" :placeholder="searchPlaceholder" v-model="searchBarText" @blur="searchBarBlur" :loading="searchLoading" @keyup="searching"></v-text-field>
                     <button v-bind:class="{ sortBtn: sortType == 'asc' }" class="btn" v-on:click="changeSortType('asc')">asc</button>
                     <button v-bind:class="{ sortBtn: sortType == 'desc' }" class="btn" v-on:click="changeSortType('desc')">desc</button>
+
+                    <div class="switch-button-control">
+                      <div class="switch-button" :class="{ enabled: isEnabled }" @click="toggle" :style="{'--color': color}">
+                        <div class="button"></div>
+                      </div>
+                      <div class="switch-button-label">
+                        <slot></slot>
+                      </div>
+                    </div>
                     <!-- <input type="checkbox" v-model="showDone">
                     <label class="btn btn-noborder" v-bind:class="{ reddd: showDone }">只顯示已完成</label> -->
                   </div>
@@ -116,6 +126,9 @@ export default {
       showDone: false,
       showNoDone: false,
       searchPlaceholder: '請輸入搜尋文字',
+      searchLoading: false,
+      isEnabled: false,
+      color: '#4D4D4D',
       filterItems: [{	text: '全部', active: true, id: 0 }, { text: '未完成', active: false, id: 1 }, {text: '已完成', active: false, id: 2 }],
       filter: '全部',
     }
@@ -198,14 +211,29 @@ export default {
       this.inputValue = '';
       this.hint = '請輸入待辦事項';
     },
+    searching: function() {
+      if (this.searchBarText && !this.searchLoading) {
+        this.searchLoading = true;
+        // searchBarText
+        setTimeout(() => {
+          this.searchLoading = false;
+        }, 980);
+      }
+    },
     searchBarBlur: function() {
 		  this.searchPlaceholder = '請輸入搜尋文字';
     },
+    toggle: function() {
+      this.isEnabled = !this.isEnabled;
+      this.sortType = this.isEnabled ? 'desc' : 'asc'
+    },
     changeSortType: function(type) {
       if (type == 'asc') {
-        this.sortType = 'asc'
+        this.sortType = 'asc';
+        this.isEnabled = false;
       } else if (type == 'desc') {
-        this.sortType = 'desc'
+        this.sortType = 'desc';
+        this.isEnabled = true;
       }
     },
     sortList: function (todos) { // 抽出來邏輯不要寫在這 耗效能 每次都會重新渲染 https://ithelp.ithome.com.tw/articles/10187537
@@ -265,6 +293,9 @@ export default {
       deep: true
     },
   },
+  mounted() {
+    console.log('mounted')
+  },
 }
 </script>
 
@@ -298,7 +329,7 @@ export default {
     color: red;
   }
 
-  #test .inputstyle {
+  .inputstyle {
     padding: 0 5px;
     border-radius: 4px;
     border: 1px solid black;
@@ -328,4 +359,50 @@ export default {
     color: white;
     background: red;
   }
+  .v-input{
+    display: inline-block;
+  }
+
+  .switch-button {
+    margin: 10px 0;
+  }
+  .bottom-message {
+    margin-top: 20px;
+    font-size: 125%;
+  }
+
+  .switch-button-control {
+    display: inline-block;
+    flex-direction: row;
+    align-items: center;
+  }
+  .switch-button-control .switch-button {
+    height: 1.6em;
+    width: calc(1.6em * 2);
+    border: 2px solid var(--color);
+    box-shadow: inset 0px 0px 2px 0px rgba(0, 0, 0, 0.33);
+    border-radius: 1.6em;
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+  }
+  .switch-button-control .switch-button .button {
+    height: calc( 1.6em - (2 * 2px) );
+    width: calc( 1.6em - (2 * 2px) );
+    border: 2px solid var(--color);
+    border-radius: calc( 1.6em - (2 * 2px) );
+    background: var(--color);
+    transition: all 0.3s ease-in-out;
+  }
+  .switch-button-control .switch-button.enabled {
+    background-color: var(--color);
+    box-shadow: none;
+  }
+  .switch-button-control .switch-button.enabled .button {
+    background: white;
+    transform: translateX(calc(calc( 1.6em - (2 * 2px) ) + (2 *2px)));
+  }
+  .switch-button-control .switch-button-label {
+    margin-left: 10px;
+  }
+
 </style>

@@ -5,6 +5,7 @@ import store from './store'
 // import Vuetify from 'vuetify/lib'
 
 import 'bootstrap/dist/css/bootstrap.css'
+import 'vuetify/dist/vuetify.min.css'
 
 Vue.config.productionTip = false
 
