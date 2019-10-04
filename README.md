@@ -1,2 +1,2 @@
 # Vuex
-Vuex's application
+Vuex's application (E.g: todolist, chatroom....)
