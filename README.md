@@ -1,9 +1,14 @@
-# an-vue
+# an-Vuex
 
-> Vuex's application
+> Vuex's application (E.g: todolist, chatRoom...)
+
+# Used pattern
+
+> Vuex
+> Vuetify
+> Router
 
 ## Build Setup
-
 
 
 ``` bash
