@@ -30,9 +30,9 @@
                     <!-- <input class="inputstyle" type="text" :placeholder="searchPlaceholder" v-model="searchBarText" v-on:blur="searchBarBlur"> -->
                     <v-text-field type="text" color="success" :placeholder="searchPlaceholder" v-model="searchBarText" @blur="searchBarBlur" :loading="searchLoading" @keyup="searching"></v-text-field>
                     <button v-bind:class="{ sortBtn: sortType == 'asc' }" class="btn" v-on:click="changeSortType('asc')">asc</button>
-                    <button v-bind:class="{ sortBtn: sortType == 'desc' }" class="btn" v-on:click="changeSortType('desc')">desc</button>
+                    
 
-                    <div class="switch-button-control">
+                    <div class="switch-button-control" style="vertical-align: middle;">
                       <div class="switch-button" :class="{ enabled: isEnabled }" @click="toggle" :style="{'--color': color}">
                         <div class="button"></div>
                       </div>
@@ -40,6 +40,8 @@
                         <slot></slot>
                       </div>
                     </div>
+
+                    <button v-bind:class="{ sortBtn: sortType == 'desc' }" class="btn" v-on:click="changeSortType('desc')">desc</button>
                     <!-- <input type="checkbox" v-model="showDone">
                     <label class="btn btn-noborder" v-bind:class="{ reddd: showDone }">只顯示已完成</label> -->
                   </div>
@@ -294,7 +296,7 @@ export default {
     },
   },
   mounted() {
-    console.log('mounted')
+    // console.log('mounted')
   },
 }
 </script>

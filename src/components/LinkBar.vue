@@ -10,6 +10,12 @@
     <li>
       <router-link to="/ChatRoom">ChatRoom</router-link>
     </li>
+    <li>
+      <router-link to="/Testing_60s">Testing_60s</router-link>
+    </li>
+    <li>
+      <router-link to="/Scroller">Scroller</router-link>
+    </li>
   </ul>
 </template>
 
