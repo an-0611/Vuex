@@ -34,18 +34,18 @@
 
       <div class="alertbox" v-if="noChooseAnswer">請先選擇一個答案</div>
       <div>userAnswer: {{ userAnswer }}</div>
-      <button class="btn" @click="toNext(item)">{{ nextButtonText }}</button>
+      <button class="btn" @click="toNext(item)" @keyup.enter="toNext(item)">{{ nextButtonText }}</button>
     </div>
 
     <div class="resultbox" v-if="finishQuestion">
       <div >恭喜完成所有測驗,您的成績如下: </div>
-      <div>答題正確率 : {{ a.length - (a.length - answerNum) - wrongs.length }} / {{ a.length}}</div>
-      <div v-if="a.length - answerNum > 0">未達題數 : {{ a.length - answerNum }}</div>
-      <div v-if="wrongs.length > 0" v-for="(wrong, index) in wrongs" >
+      <div>答題正確率 : {{ questions.length - (questions.length - answerNum) - wrongs.length }} / {{ questions.length}}</div>
+      <div v-if="questions.length - answerNum > 0">未達題數 : {{ questions.length - answerNum }}</div>
+      <div class="resultboxDiv" v-if="wrongs.length > 0" v-for="(wrong, index) in wrongs" >
         <div class="wrongTitle">
-          {{ wrong.countIndex }}. {{ wrong.title }}  
-          <span class="urAnswer">你的答案: {{ wrong.urAnswer }}</span>
-          <span class="currentAnswer">正確答案: {{ wrong.currentAnswer }}</span>
+          <p>{{ wrong.countIndex }}. {{ wrong.title }}</p>
+          <p class="urAnswer">你的答案: {{ wrong.urAnswer }}</p>
+          <p class="currentAnswer">正確答案: {{ wrong.currentAnswer }}</p>
         </div>
       </div>
       <div>是否保存本次測驗資料以利下次查詢?</div>
@@ -59,6 +59,7 @@
 <script>
 import { isEmpty } from 'lodash'
 import LinkBar from './LinkBar'
+
 export default {
   name: 'Testing-60s',
   components: {
@@ -76,35 +77,7 @@ export default {
       hiddenSetting: false,
       showFailAlert: false,
 
-      questions : [
-        {
-          id: 1,
-          title: 'Sort Question',
-          description: 'The sorting in the algorithm is the ',
-          question: 'With Algorithm, many kinds of sort methods that we usually used, one of the famous sort method called "Quick Sort", the most quickly solution with the time complexity and space complexity, which one is current ?',
-          options: [
-            'O(nlog2n), O(n2)',
-            'O(nlog2n), O(nlog2n)',
-            'O(n), O(nlog2n)',
-            'O(1), O(nlog2n)'
-          ],
-          answer: 'O(nlog2n), O(nlog2n)',
-        },
-        {
-          id: 2,
-          title: 'Sort Question',
-          description: 'The sorting in the algorithm is the ',
-          question: 'With Algorithm, many kinds of sort methods that we usually used, one of the famous sort method called "Quick Sort", the most quickly solution with the time complexity and space complexity, which one is current ?',
-          options: [
-            'O(nlog2n), O(n2)',
-            'O(nlog2n), O(nlog2n)',
-            'O(n), O(nlog2n)',
-            'O(1), O(nlog2n)'
-          ],
-          answer: 'O(nlog2n), O(nlog2n)',
-        },
-      ],
-      a: [],
+      questions: [],
       count: 0, // 顯示第幾題 點一下 count++ 就會秀下一題
       nextButtonText: '下一題',
       finishQuestion: false,
@@ -117,6 +90,27 @@ export default {
     }
   },
   methods: {
+    getData: function() {
+      const config = {
+        apiKey: "AIzaSyCJqM9Ya50eU16uH5Y-gHDnHqw55WMLJiA",
+        authDomain: "an-Vuex-quicktest.firebaseapp.com",
+        databaseURL: "https://an-Vuex-quicktest.firebaseio.com",
+        messagingSenderId: "6837591005",
+        projectId: "an-Vuex-quicktest",
+        storageBucket: "",
+      };
+
+      var firebase = window.firebase;
+      firebase.initializeApp(config);
+      return firebase.database().ref("/").once("value").then(function(data) {
+        return data.val().questions;
+      });
+      // var sendPaintToFirebase = function(paintInfo, ID) {
+      //   db.ref("/" + ID).set(Object.assign({}, paintInfo)).then(function(res) {
+      //       console.log("success save to firebase");
+      //   });
+      // };
+    },
     shuffle: function(arr) {
       arr.sort(() => Math.random() - 0.5);
     },
@@ -143,37 +137,33 @@ export default {
         this.showError = true;
         this.errorMsg = '請先選擇測驗秒數'
       } else {
+        const _this = this;
         this.loading = true;
-        // $.ajax({
-        // }).then(function(result) {
+        this.getData().then(function(result) {
           setTimeout(() => {
-            // this.loading = false;
-            if (!isEmpty(this.questions)) { // questions = result
-              this.showQuestion = true;
-              this.hiddenSetting = false;
-              // success to get data
-              this.questions.forEach((question, i) => {
+            _this.loading = false;
+            if (!isEmpty(result)) {
+              _this.showQuestion = true;
+              _this.hiddenSetting = false;
+              result.forEach((question, i) => {
                 question.count = i;
-                question.name = this.createRandomWord(4) + this.createRandomWord(4); // 重複機率 兩千億分之一
+                question.name = _this.createRandomWord(4) + _this.createRandomWord(4); // 重複機率 兩千億分之一
               })
-              this.a = [...this.questions]; // this.questions = result
-              // console.log(this.a)
+              _this.questions = [...result];
               // 設定時間
-              this.second = Number(this.picked);
+              _this.second = Number(_this.picked);
               setTimeout(() => {
-                this.runSecond();
+                _this.runSecond();
               }, 1000);
-              
-            } else {
+            } else { // fail to get data
               this.showFailAlert = true;
-              // fail to get data
             }
           }, 1000);
-        // })
+        })
       }
     },
     toNext: function(question) {
-      if (this.count < this.a.length && this.count !== this.a.length - 1) {
+      if (this.count < this.questions.length && this.count !== this.questions.length - 1) {
         if (isEmpty(this.userAnswer)) {
           this.noChooseAnswer = true;
           return;
@@ -190,8 +180,8 @@ export default {
           this.userAnswer = '';
         }
         this.count++;
-        if (this.count == this.a.length - 1) this.nextButtonText = '完成';
-      } else if (this.count == this.a.length - 1) {
+        if (this.count == this.questions.length - 1) this.nextButtonText = '完成';
+      } else if (this.count == this.questions.length - 1) {
         if (isEmpty(this.userAnswer)) {
           this.noChooseAnswer = true;
           return;
@@ -208,7 +198,7 @@ export default {
           this.userAnswer = '';
         }
         this.finishQuestion = true;
-        // this.a = []; // reset data // 等結束結果頁面在清空
+        // this.questions = []; // reset data // 等結束結果頁面在清空
         // this.count = 0; // reset count
         // this.wrongs = []; // reset wrongs
       }
@@ -217,10 +207,19 @@ export default {
   },
   computed: {
     shuffleOptions() {
-      this.a.forEach((item) => {
-        this.shuffle(item.options);
+      this.questions.forEach((item) => {
+        if (item.options.indexOf('All of the above') == -1) this.shuffle(item.options);
       })
-      return this.a;
+      this.shuffle(this.questions);
+      this.questions.forEach((question, index, array) => {
+        question.count = array.indexOf(question);
+      })
+      // function shuffleObject(o){ 
+      //   for (var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+      //   return o;
+      // };
+      // shuffleObject(this.questions);
+      return this.questions;
     },
   },
   watch: {
@@ -250,13 +249,19 @@ export default {
   a {
     color: #42b983;
   }
+  p {
+    margin: 0
+  }
   #setting, .questionBox, .resultbox, .clock {
      width: 95%;
     margin: auto;
   }
-  .questionBox, .resultbox {
+  .questionBox, .resultbox, .resultboxDiv {
     padding: 5px 10px;
     border: 1px solid black;
+  }
+  .resultboxDiv {
+    margin: 5px 0;
   }
   .questionBox label {
     display: block;
