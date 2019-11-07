@@ -48,7 +48,7 @@
           <p class="currentAnswer">正確答案: {{ wrong.currentAnswer }}</p>
         </div>
       </div>
-      <div>是否保存本次測驗資料以利下次查詢?</div>
+      <div>是否保存本次測驗資料以利下次查詢 ?</div>
       <button class="btn">是</button>
       <button class="btn" @click="resetWeb">否</button>
     </div>
