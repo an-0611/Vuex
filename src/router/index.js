@@ -10,7 +10,7 @@ import Testing_60s from '../components/Testing_60s'
 Vue.use(Router)
 
 export default new Router({
-  mode: 'history',
+  // mode: 'history', // 造成白屏 https://blog.csdn.net/tom_wong666/article/details/82670582
   routes: [
     {
       path: '/',

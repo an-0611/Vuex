@@ -9,11 +9,10 @@ import 'vuetify/dist/vuetify.min.css'
 
 Vue.config.productionTip = false
 
-// Vue.use(Vuetify)
-
 new Vue({
   el: '#app',
   router,
   store,
+  // components: { App },
   render: h => h(App) // components: { App },
 })
