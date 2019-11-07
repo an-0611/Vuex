@@ -1,20 +1,16 @@
 var path = require('path')
 var webpack = require('webpack')
-const nodeExternals = require('webpack-node-externals')
 
 function resolve(dir) {
   return path.resolve(__dirname, dir);
 }
 
 module.exports = {
-  entry: ['./src/main.js'],
+  entry: './src/main.js',
   output: {
     path: resolve('./dist'),// 打包後的根目錄資料夾dist,所有的檔案都會輸出到這裡
     publicPath: '/dist/',
-    filename: 'build.js',
-    // 在源码表中使用绝对路径 (对于在 IDE 中调试时很重要)
-    devtoolModuleFilenameTemplate: '[absolute-resource-path]',
-    devtoolFallbackModuleFilenameTemplate: '[absolute-resource-path]?[hash]'
+    filename: 'build.js'
   },
   module: {
     rules: [
@@ -66,13 +62,6 @@ module.exports = {
         exclude: /node_modules/
       },
       {
-          test: /\.js|\.vue$/,
-          use: {
-              loader: 'babel-loader'
-          },
-          exclude: /test|\.spec\.js$/
-      },
-      {
         test: /\.(png|jpg|gif|svg)$/,
         loader: 'file-loader',
         options: {
@@ -84,8 +73,6 @@ module.exports = {
   resolve: { // 設置模板編譯
     alias: {
       'vue$': 'vue/dist/vue.esm.js'
-      // '@': resolve('src')
-      // 'vue': 'vue/dist/vue.js'
     },
     extensions: ['*', '.js', '.vue', '.json']
   },
@@ -97,10 +84,7 @@ module.exports = {
   performance: {
     hints: false
   },
-  // devtool: '#eval-source-map',
-  devtool: 'inline-cheap-module-source-map',
-  // externals: [nodeExternals({whitelist: [/^vue-awesome/,/^lodash/]})] //　<resolve vue <template> compiler question>
-  externals: [nodeExternals({whitelist: [/^vue-awesome/,/^lodash/]})] //　<resolve vue <template> compiler question>
+  devtool: '#eval-source-map'
 }
 
 if (process.env.NODE_ENV === 'production') {
@@ -119,17 +103,7 @@ if (process.env.NODE_ENV === 'production') {
       }
     }),
     new webpack.LoaderOptionsPlugin({
-      minimize: true,
-      options: {
-        build: {
-          assetsPublicPath: './dist/'// https://blog.csdn.net/zhuoganliwanjin/article/details/78879566
-        }
-      },
+      minimize: true
     }),
-    // new webpack.optimize.CommonsChunkPlugin('common.js'),
-    // new webpack.ProvidePlugin({
-    //      jQuery: "jquery",
-    //      $: "jquery"
-    // })
   ])
 }
