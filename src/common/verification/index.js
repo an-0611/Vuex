@@ -25,3 +25,10 @@ export const engOnly = (value, errorMessage) => {
   var regExp = /^[a-zA-Z]+$/;
   return value && regExp.test(value) ? value: errorMessage || undefined;
 };
+
+export const filterZhuin = (value) => {
+  if (!value) return;
+	var str = value.replace(/[\u3105-\u3129\u02CA\u02C7\u02CB\u02D9]/g, '');
+	return value.length == str.length; // 沒注音 true / 有注音 false
+}
+// filterZhuin('安ㄅ')
